@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BookSphere — Add / Edit Book</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --ink: #1a1207;
+      --paper: #fdf8f0;
+      --cream: #f5ede0;
+      --amber: #d97706;
+      --amber-light: #fbbf24;
+      --rust: #c2410c;
+      --sage: #4a7c59;
+      --muted: #8a7a65;
+      --border: #e8ddd0;
+      --shadow: rgba(26,18,7,0.12);
+      --blue: #2563eb;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--paper); font-family: 'DM Sans', sans-serif; color: var(--ink); min-height: 100vh; }
+
+    header {
+      background: var(--ink); color: var(--paper);
+      padding: 0 2.5rem; display: flex; align-items: center;
+      justify-content: space-between; height: 72px;
+      box-shadow: 0 4px 20px var(--shadow);
+    }
+    .logo { display: flex; align-items: center; gap: 0.75rem; }
+    .logo-icon { width: 36px; height: 36px; background: var(--amber); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .logo h1 { font-family: 'Playfair Display', serif; font-size: 1.4rem; }
+    .logo span { color: var(--amber-light); }
+    .back-btn {
+      background: transparent; border: 1px solid rgba(255,255,255,0.25);
+      color: var(--paper); padding: 0.45rem 1rem; border-radius: 8px;
+      font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 0.4rem;
+      transition: background 0.2s; text-decoration: none; font-family: 'DM Sans',sans-serif;
+    }
+    .back-btn:hover { background: rgba(255,255,255,0.1); }
+
+    main {
+      max-width: 600px; margin: 3rem auto; padding: 0 1.5rem;
+    }
+
+    .form-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 4px 30px var(--shadow);
+      overflow: hidden;
+    }
+    .form-header {
+      background: var(--ink);
+      padding: 2rem 2.2rem 1.5rem;
+      color: var(--paper);
+      position: relative;
+    }
+    .form-header::after {
+      content: '📖';
+      position: absolute; right: 2rem; top: 50%; transform: translateY(-50%);
+      font-size: 2.5rem; opacity: 0.3;
+    }
+    .form-header .badge {
+      display: inline-block;
+      background: var(--amber);
+      color: var(--ink);
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      margin-bottom: 0.6rem;
+    }
+    .form-header h2 { font-family: 'Playfair Display', serif; font-size: 1.7rem; }
+    .form-header p { color: rgba(253,248,240,0.6); font-size: 0.85rem; margin-top: 0.3rem; }
+
+    form { padding: 2rem 2.2rem; }
+
+    .field { margin-bottom: 1.4rem; }
+    label {
+      display: block; font-size: 0.8rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--muted); margin-bottom: 0.45rem;
+    }
+    input {
+      width: 100%; padding: 0.72rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 10px; font-size: 0.95rem;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+    input:focus {
+      border-color: var(--amber);
+      box-shadow: 0 0 0 3px rgba(217,119,6,0.15);
+      background: #fff;
+    }
+    input.error { border-color: var(--rust); box-shadow: 0 0 0 3px rgba(194,65,12,0.1); }
+    .error-msg { color: var(--rust); font-size: 0.78rem; margin-top: 0.3rem; display: none; }
+    .error-msg.show { display: block; }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .form-actions {
+      display: flex; gap: 0.8rem; margin-top: 0.5rem;
+    }
+    .btn-submit {
+      flex: 1; background: var(--ink); color: var(--paper);
+      border: none; padding: 0.82rem 1.5rem;
+      border-radius: 10px; font-size: 0.95rem; font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer; transition: background 0.2s, transform 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    }
+    .btn-submit:hover { background: #2d2010; transform: translateY(-1px); }
+    .btn-submit:disabled { background: var(--muted); cursor: not-allowed; transform: none; }
+    .btn-cancel {
+      background: var(--cream); color: var(--ink);
+      border: 1.5px solid var(--border); padding: 0.82rem 1.5rem;
+      border-radius: 10px; font-size: 0.95rem; font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer; transition: all 0.15s; text-decoration: none;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .btn-cancel:hover { background: var(--border); }
+
+    /* Spinner in button */
+    .btn-spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Loading overlay for edit mode */
+    .loading-overlay {
+      position: fixed; inset: 0;
+      background: rgba(253,248,240,0.8);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 50;
+    }
+    .loading-overlay.hidden { display: none; }
+    .big-spinner {
+      width: 42px; height: 42px;
+      border: 4px solid var(--border);
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay hidden" id="loading-overlay">
+  <div class="big-spinner"></div>
+</div>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">📚</div>
+    <h1>Book<span>Sphere</span></h1>
+  </div>
+  <a href="home.html" class="back-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    Back
+  </a>
+</header>
+
+<main>
+  <div class="form-card">
+    <div class="form-header">
+      <div class="badge" id="mode-badge">New Entry</div>
+      <h2 id="form-title">Add a New Book</h2>
+      <p id="form-sub">Fill in the details to catalogue a new book.</p>
+    </div>
+
+    <form id="book-form" novalidate>
+      <input type="hidden" id="book-id"/>
+
+      <div class="field">
+        <label for="title">Book Title</label>
+        <input type="text" id="title" placeholder="e.g. The Great Gatsby" autocomplete="off"/>
+        <div class="error-msg" id="err-title">Title is required.</div>
+      </div>
+
+      <div class="field">
+        <label for="author">Author</label>
+        <input type="text" id="author" placeholder="e.g. F. Scott Fitzgerald" autocomplete="off"/>
+        <div class="error-msg" id="err-author">Author is required.</div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="price">Price (₹)</label>
+          <input type="number" id="price" placeholder="e.g. 299" min="0" step="0.01"/>
+          <div class="error-msg" id="err-price">Enter a valid price.</div>
+        </div>
+        <div class="field">
+          <label for="year">Publication Year</label>
+          <input type="number" id="year" placeholder="e.g. 2023" min="1000" max="2099"/>
+          <div class="error-msg" id="err-year">Enter a valid year.</div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a href="home.html" class="btn-cancel">Cancel</a>
+        <button type="submit" class="btn-submit" id="submit-btn">
+          <div class="btn-spinner" id="btn-spinner"></div>
+          <span id="submit-label">Add Book</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<script>
+  const API = 'http://localhost:8080/book';
+  const params = new URLSearchParams(location.search);
+  const editId = params.get('id');
+
+  if (editId) {
+    document.getElementById('mode-badge').textContent = 'Editing';
+    document.getElementById('form-title').textContent = 'Edit Book Details';
+    document.getElementById('form-sub').textContent = 'Update the information below and save your changes.';
+    document.getElementById('submit-label').textContent = 'Save Changes';
+    document.getElementById('book-id').value = editId;
+
+    // Load existing data
+    document.getElementById('loading-overlay').classList.remove('hidden');
+    fetch(`${API}/${editId}`)
+      .then(r => r.json())
+      .then(json => {
+        const b = json.data;
+        document.getElementById('title').value = b.title;
+        document.getElementById('author').value = b.author;
+        document.getElementById('price').value = b.price;
+        document.getElementById('year').value = b.year;
+      })
+      .catch(() => alert('Failed to load book data.'))
+      .finally(() => document.getElementById('loading-overlay').classList.add('hidden'));
+  }
+
+  // Validation helpers
+  function validateField(inputId, errId, check) {
+    const inp = document.getElementById(inputId);
+    const err = document.getElementById(errId);
+    if (!check(inp.value)) {
+      inp.classList.add('error'); err.classList.add('show'); return false;
+    }
+    inp.classList.remove('error'); err.classList.remove('show'); return true;
+  }
+
+  document.getElementById('book-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    let valid = true;
+    valid &= validateField('title',  'err-title',  v => v.trim().length > 0);
+    valid &= validateField('author', 'err-author', v => v.trim().length > 0);
+    valid &= validateField('price',  'err-price',  v => !isNaN(v) && Number(v) >= 0);
+    valid &= validateField('year',   'err-year',   v => /^\d{4}$/.test(v.trim()) && Number(v) >= 1000 && Number(v) <= 2099);
+    if (!valid) return;
+
+    const payload = {
+      title: document.getElementById('title').value.trim(),
+      author: document.getElementById('author').value.trim(),
+      price: parseFloat(document.getElementById('price').value),
+      year: parseInt(document.getElementById('year').value),
+    };
+
+    const btn = document.getElementById('submit-btn');
+    document.getElementById('btn-spinner').style.display = 'block';
+    document.getElementById('submit-label').textContent = 'Saving…';
+    btn.disabled = true;
+
+    try {
+      const id = document.getElementById('book-id').value;
+      const url = id ? `${API}/${id}` : API;
+      const method = id ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('Server error');
+      window.location.href = `home.html?success=${id ? 'updated' : 'added'}`;
+    } catch(err) {
+      alert('Something went wrong. Please try again.');
+      document.getElementById('btn-spinner').style.display = 'none';
+      document.getElementById('submit-label').textContent = editId ? 'Save Changes' : 'Add Book';
+      btn.disabled = false;
+    }
+  });
+
+  // Remove error on input
+  ['title','author','price','year'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+      document.getElementById(id).classList.remove('error');
+      document.getElementById(`err-${id}`).classList.remove('show');
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BookSphere — Book Catalogue</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --ink: #1a1207;
+      --paper: #fdf8f0;
+      --cream: #f5ede0;
+      --amber: #d97706;
+      --amber-light: #fbbf24;
+      --rust: #c2410c;
+      --sage: #4a7c59;
+      --muted: #8a7a65;
+      --border: #e8ddd0;
+      --shadow: rgba(26,18,7,0.12);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--paper);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* Decorative header */
+    header {
+      background: var(--ink);
+      color: var(--paper);
+      padding: 0 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 20px var(--shadow);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: var(--amber);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+    }
+    .logo h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      letter-spacing: 0.02em;
+    }
+    .logo span { color: var(--amber-light); }
+
+    .btn-add {
+      background: var(--amber);
+      color: var(--ink);
+      border: none;
+      padding: 0.55rem 1.2rem;
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 0.4rem;
+      transition: background 0.2s, transform 0.15s;
+      text-decoration: none;
+    }
+    .btn-add:hover { background: var(--amber-light); transform: translateY(-1px); }
+    .btn-add svg { width: 16px; height: 16px; }
+
+    /* Main */
+    main { max-width: 1100px; margin: 2.5rem auto; padding: 0 2rem; }
+
+    .page-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+    }
+    .page-sub { color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; }
+
+    
+    /* Table */
+    .table-wrap {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 2px 20px var(--shadow);
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr {
+      background: var(--ink);
+      color: var(--paper);
+    }
+    th {
+      padding: 1rem 1.2rem;
+      text-align: left;
+      font-weight: 500;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--cream); }
+    td {
+      padding: 1rem 1.2rem;
+      font-size: 0.9rem;
+      vertical-align: middle;
+    }
+    .book-title { font-weight: 500; color: var(--ink); }
+    .book-author { color: var(--muted); font-size: 0.85rem; }
+    .price-badge {
+      display: inline-block;
+      background: #ecfdf5;
+      color: var(--sage);
+      border: 1px solid #a7f3d0;
+      border-radius: 6px;
+      padding: 0.2rem 0.5rem;
+      font-size: 0.82rem;
+      font-weight: 500;
+    }
+    .year-tag {
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+    .actions { display: flex; gap: 0.5rem; align-items: center; }
+
+    .btn-edit, .btn-delete {
+      border: none;
+      border-radius: 7px;
+      padding: 0.38rem 0.85rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 0.3rem;
+      transition: all 0.15s;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .btn-edit {
+      background: #eff6ff;
+      color: #2563eb;
+      border: 1px solid #bfdbfe;
+    }
+    .btn-edit:hover { background: #dbeafe; transform: translateY(-1px); }
+    .btn-delete {
+      background: #fff1f2;
+      color: var(--rust);
+      border: 1px solid #fecdd3;
+    }
+    .btn-delete:hover { background: #ffe4e6; transform: translateY(-1px); }
+
+    /* Loading / empty */
+    .state-row td {
+      text-align: center;
+      padding: 3rem;
+      color: var(--muted);
+    }
+    .spinner {
+      width: 30px; height: 30px;
+      border: 3px solid var(--border);
+      border-top-color: var(--amber);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 0.8rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Success popup */
+    .popup-overlay {
+      position: fixed; inset: 0;
+      background: rgba(26,18,7,0.45);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 999;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .popup-overlay.show { opacity: 1; pointer-events: all; }
+    .popup {
+      background: #fff;
+      border-radius: 16px;
+      padding: 2.2rem 2.5rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+      transform: scale(0.9);
+      transition: transform 0.25s;
+      max-width: 360px;
+      width: 90%;
+    }
+    .popup-overlay.show .popup { transform: scale(1); }
+    .popup-icon {
+      width: 56px; height: 56px;
+      background: #ecfdf5;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1rem;
+      font-size: 1.6rem;
+    }
+    .popup h3 { font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-bottom: 0.4rem; }
+    .popup p { color: var(--muted); font-size: 0.9rem; }
+    .popup-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin-top: 1.4rem;
+      overflow: hidden;
+    }
+    .popup-bar-fill {
+      height: 100%;
+      background: var(--sage);
+      border-radius: 2px;
+      width: 0%;
+      transition: width 1s linear;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">📚</div>
+    <h1>Book<span>Sphere</span></h1>
+  </div>
+  <a href="addBook.html" class="btn-add">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    Add Book
+  </a>
+</header>
+
+<main>
+  <h2 class="page-title">Book Catalogue</h2>
+  <p class="page-sub">Manage your entire book inventory from here.</p>
+
+  <!-- <div class="stats">
+    <div class="stat"><strong id="total-count">—</strong>Total Books</div>
+    <div class="stat"><strong id="avg-price">—</strong>Avg. Price</div>
+  </div> -->
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Title / Author</th>
+          <th>Year</th>
+          <th>Price</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="book-table">
+        <tr class="state-row"><td colspan="5">
+          <div class="spinner"></div>
+          Loading books…
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<!-- Success popup (shown after redirect with ?success=1) -->
+<div class="popup-overlay" id="popup">
+  <div class="popup">
+    <div class="popup-icon">✅</div>
+    <h3 id="popup-title">Done!</h3>
+    <p id="popup-msg">Operation completed successfully.</p>
+    <div class="popup-bar"><div class="popup-bar-fill" id="popup-bar"></div></div>
+  </div>
+</div>
+
+<script>
+  const API = 'http://localhost:8080/book';
+
+  async function loadBooks() {
+    try {
+      const res = await fetch(API);
+      const json = await res.json();
+      const books = json.data || [];
+      renderBooks(books);
+      //document.getElementById('total-count').textContent = books.length;
+     // const avg = books.length ? (books.reduce((s,b)=>s+b.price,0)/books.length).toFixed(2) : '0.00';
+      //document.getElementById('avg-price').textContent = '₹' + avg;
+    } catch(e) {
+      document.getElementById('book-table').innerHTML =
+        `<tr class="state-row"><td colspan="5">⚠️ Failed to load books. Is the server running?</td></tr>`;
+    }
+  }
+
+  function renderBooks(books) {
+    const tbody = document.getElementById('book-table');
+    if (!books.length) {
+      tbody.innerHTML = `<tr class="state-row"><td colspan="5">No books found. Add your first book!</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = books.map((b,i) => `
+      <tr>
+        <td style="color:var(--muted);font-size:.85rem">${i+1}</td>
+        <td>
+          <div class="book-title">${esc(b.title)}</div>
+          <div class="book-author">by ${esc(b.author)}</div>
+        </td>
+        <td><span class="year-tag">${b.year}</span></td>
+        <td><span class="price-badge">₹${b.price.toFixed(2)}</span></td>
+        <td>
+          <div class="actions">
+            <button class="btn-edit" onclick="editBook(${b.id})">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Edit
+            </button>
+            <button class="btn-delete" onclick="deleteBook(${b.id}, '${esc(b.title)}')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+              Delete
+            </button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function editBook(id) {
+    window.location.href = `addBook.html?id=${id}`;
+  }
+
+  function deleteBook(id, title) {
+    window.location.href = `delete.html?id=${id}&title=${encodeURIComponent(title)}`;
+  }
+
+  // Show success popup if redirected with ?success param
+  const params = new URLSearchParams(location.search);
+  if (params.get('success')) {
+    const messages = {
+      added: ['Book Added! 🎉', 'The new book has been added to your catalogue.'],
+      updated: ['Book Updated! ✏️', 'The book details have been saved successfully.'],
+      deleted: ['Book Deleted! 🗑️', 'The book has been removed from your catalogue.'],
+    };
+    const type = params.get('success');
+    const [title, msg] = messages[type] || ['Done!', 'Operation completed.'];
+    document.getElementById('popup-title').textContent = title;
+    document.getElementById('popup-msg').textContent = msg;
+    const overlay = document.getElementById('popup');
+    overlay.classList.add('show');
+    setTimeout(() => { document.getElementById('popup-bar').style.width = '100%'; }, 50);
+    setTimeout(() => { overlay.classList.remove('show'); }, 1200);
+    // Clean URL
+    history.replaceState({}, '', 'home.html');
+  }
+
+  loadBooks();
+</script>
+</body>
+</html>

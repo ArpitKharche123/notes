@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BookSphere — Delete Book</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --ink: #1a1207;
+      --paper: #fdf8f0;
+      --cream: #f5ede0;
+      --amber: #d97706;
+      --amber-light: #fbbf24;
+      --rust: #c2410c;
+      --rust-light: #fff1f2;
+      --rust-border: #fecdd3;
+      --muted: #8a7a65;
+      --border: #e8ddd0;
+      --shadow: rgba(26,18,7,0.12);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--paper);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: var(--ink); color: var(--paper);
+      padding: 0 2.5rem; display: flex; align-items: center;
+      justify-content: space-between; height: 72px;
+      box-shadow: 0 4px 20px var(--shadow);
+    }
+    .logo { display: flex; align-items: center; gap: 0.75rem; }
+    .logo-icon { width: 36px; height: 36px; background: var(--amber); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+    .logo h1 { font-family: 'Playfair Display', serif; font-size: 1.4rem; }
+    .logo span { color: var(--amber-light); }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .warn-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: 0 8px 40px var(--shadow);
+      max-width: 460px;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    /* Red danger stripe */
+    .warn-stripe {
+      height: 6px;
+      background: linear-gradient(90deg, var(--rust), #ef4444, var(--rust));
+      background-size: 200% 100%;
+      animation: slide-gradient 2s linear infinite;
+    }
+    @keyframes slide-gradient { to { background-position: 200% 0; } }
+
+    .warn-body { padding: 2.5rem 2.5rem 2rem; }
+
+    .warn-icon-wrap {
+      width: 72px; height: 72px;
+      background: var(--rust-light);
+      border: 2px solid var(--rust-border);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem;
+      animation: pulse-icon 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse-icon {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(194,65,12,0.2); }
+      50% { box-shadow: 0 0 0 10px rgba(194,65,12,0); }
+    }
+    .warn-icon { font-size: 2rem; }
+
+    .warn-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+    .warn-subtitle {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 1.8rem;
+      line-height: 1.5;
+    }
+
+    .book-preview {
+      background: var(--cream);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.3rem;
+      margin-bottom: 1.8rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .book-preview-icon {
+      font-size: 1.8rem;
+      flex-shrink: 0;
+    }
+    .book-preview-info {}
+    .book-preview-title {
+      font-weight: 600;
+      font-size: 1rem;
+      color: var(--ink);
+    }
+    .book-preview-id {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 0.15rem;
+    }
+
+    .warn-actions {
+      display: flex;
+      gap: 0.8rem;
+    }
+    .btn-cancel {
+      flex: 1;
+      background: var(--cream);
+      color: var(--ink);
+      border: 1.5px solid var(--border);
+      padding: 0.82rem;
+      border-radius: 10px;
+      font-size: 0.95rem; font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer; transition: all 0.15s;
+      text-decoration: none;
+      display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+    }
+    .btn-cancel:hover { background: var(--border); }
+
+    .btn-confirm {
+      flex: 1;
+      background: var(--rust);
+      color: #fff;
+      border: none;
+      padding: 0.82rem;
+      border-radius: 10px;
+      font-size: 0.95rem; font-weight: 500;
+      font-family: 'DM Sans', sans-serif;
+      cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+    }
+    .btn-confirm:hover { background: #9a3412; transform: translateY(-1px); }
+    .btn-confirm:disabled { background: var(--muted); cursor: not-allowed; transform: none; }
+
+    .btn-spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .warn-note {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 1.2rem;
+      padding-top: 1.2rem;
+      border-top: 1px solid var(--border);
+    }
+    .warn-note strong { color: var(--rust); }
+
+    /* Error state */
+    .alert {
+      background: var(--rust-light);
+      border: 1px solid var(--rust-border);
+      color: var(--rust);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+      margin-top: 1rem;
+      display: none;
+    }
+    .alert.show { display: block; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">📚</div>
+    <h1>Book<span>Sphere</span></h1>
+  </div>
+</header>
+
+<main>
+  <div class="warn-card">
+    <div class="warn-stripe"></div>
+    <div class="warn-body">
+      <div class="warn-icon-wrap">
+        <span class="warn-icon">🗑️</span>
+      </div>
+
+      <h2 class="warn-title">Delete Book?</h2>
+      <p class="warn-subtitle">
+        This action is permanent and cannot be undone.<br>
+        The following book will be removed from your catalogue.
+      </p>
+
+      <div class="book-preview">
+        <div class="book-preview-icon">📘</div>
+        <div class="book-preview-info">
+          <div class="book-preview-title" id="book-title">Loading…</div>
+          <div class="book-preview-id" id="book-id-label">Book ID: —</div>
+        </div>
+      </div>
+
+      <div class="warn-actions">
+        <a href="home.html" class="btn-cancel">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          Keep It
+        </a>
+        <button class="btn-confirm" id="confirm-btn" onclick="confirmDelete()">
+          <div class="btn-spinner" id="btn-spinner"></div>
+          <span id="confirm-label">Yes, Delete</span>
+        </button>
+      </div>
+
+      <div class="alert" id="error-alert">
+        ⚠️ Failed to delete. Please try again.
+      </div>
+
+      <div class="warn-note">
+        <strong>Warning:</strong> There is no way to recover this book after deletion.
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const API = 'http://localhost:8080/book';
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id');
+  const title = params.get('title') || 'Unknown Book';
+
+  if (!id) {
+    window.location.href = 'home.html';
+  }
+
+  document.getElementById('book-title').textContent = decodeURIComponent(title);
+  document.getElementById('book-id-label').textContent = `Book ID: ${id}`;
+
+  async function confirmDelete() {
+    const btn = document.getElementById('confirm-btn');
+    document.getElementById('btn-spinner').style.display = 'block';
+    document.getElementById('confirm-label').textContent = 'Deleting…';
+    btn.disabled = true;
+    document.getElementById('error-alert').classList.remove('show');
+
+    try {
+      const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
+      if (res.status === 204 || res.ok) {
+        window.location.href = 'home.html?success=deleted';
+      } else {
+        throw new Error('Delete failed');
+      }
+    } catch(e) {
+      document.getElementById('error-alert').classList.add('show');
+      document.getElementById('btn-spinner').style.display = 'none';
+      document.getElementById('confirm-label').textContent = 'Yes, Delete';
+      btn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>
