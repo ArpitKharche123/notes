@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: spring-security-jwt
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/order_product_db
+    username: postgres
+    password: root1234
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false		#for better performance and security in production
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect  #optional
+
+security:
+  secret-key: "ajsu77jaur745huhfur7y7ujijid090283bjjbdsj8u8u389bjbdjbjsf8u9992993849jjdhjhajhd33222bbjvcab3"
+  exp-time: 1d
+  
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
