@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ShopVault — Add / Edit Product</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --surface: #ffffff;
+      --surface2: #f8f9fc;
+      --border: #e4e8f0;
+      --accent: #5b4fff;
+      --accent-light: #ede9ff;
+      --accent-glow: rgba(91,79,255,0.14);
+      --danger: #e63559;
+      --text: #0f0e1a;
+      --text2: #3d3a52;
+      --muted: #7b7998;
+      --muted2: #b0aec6;
+      --shadow: rgba(91,79,255,0.07);
+      --shadow-md: rgba(15,14,26,0.1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text); min-height: 100vh; }
+
+    header {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 0 2.5rem; display: flex; align-items: center; justify-content: space-between;
+      height: 68px; box-shadow: 0 2px 16px var(--shadow);
+    }
+    .logo { display: flex; align-items: center; gap: 0.75rem; }
+    .logo-mark {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), #8b7dff);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; box-shadow: 0 4px 14px var(--accent-glow);
+    }
+    .logo h1 { font-family: 'Syne', sans-serif; font-size: 1.35rem; color: var(--text); }
+    .logo h1 span { color: var(--accent); }
+    .back-btn {
+      background: transparent; border: 1.5px solid var(--border); color: var(--muted);
+      padding: 0.42rem 1rem; border-radius: 8px; font-size: 0.84rem;
+      cursor: pointer; display: flex; align-items: center; gap: 0.4rem;
+      transition: all 0.2s; text-decoration: none; font-family: 'DM Sans', sans-serif;
+    }
+    .back-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+    .loading-overlay {
+      position: fixed; inset: 0; background: rgba(244,246,251,0.85);
+      backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 50;
+    }
+    .loading-overlay.hidden { display: none; }
+    .big-spinner {
+      width: 42px; height: 42px; border: 4px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    main { max-width: 580px; margin: 3rem auto; padding: 0 1.5rem; }
+
+    .form-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px; overflow: hidden;
+      box-shadow: 0 8px 40px var(--shadow-md);
+    }
+
+    .form-header {
+      background: linear-gradient(135deg, #f0edff 0%, #fafafe 100%);
+      padding: 2rem 2.2rem 1.6rem; border-bottom: 1px solid var(--border);
+      position: relative; overflow: hidden;
+    }
+    .form-header::before {
+      content: '';
+      position: absolute; top: -50px; right: -30px;
+      width: 160px; height: 160px;
+      background: radial-gradient(circle, rgba(91,79,255,0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .form-header .badge {
+      display: inline-block; background: var(--accent-light); color: var(--accent);
+      border: 1px solid #d0c9ff; font-size: 0.7rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      padding: 0.2rem 0.65rem; border-radius: 5px; margin-bottom: 0.7rem;
+    }
+    .form-header h2 { font-family: 'Syne', sans-serif; font-size: 1.65rem; color: var(--text); }
+    .form-header p { color: var(--muted); font-size: 0.85rem; margin-top: 0.35rem; }
+
+    form { padding: 2rem 2.2rem; }
+
+    .field { margin-bottom: 1.4rem; }
+    label {
+      display: block; font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--muted); margin-bottom: 0.45rem;
+    }
+    input, textarea {
+      width: 100%; padding: 0.72rem 1rem;
+      background: var(--surface2); border: 1.5px solid var(--border);
+      border-radius: 10px; font-size: 0.92rem;
+      font-family: 'DM Sans', sans-serif; color: var(--text);
+      transition: border-color 0.2s, box-shadow 0.2s; outline: none;
+    }
+    textarea { resize: vertical; min-height: 90px; }
+    input::placeholder, textarea::placeholder { color: var(--muted2); }
+    input:focus, textarea:focus {
+      border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); background: #fff;
+    }
+    input.error, textarea.error { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(230,53,89,0.1); }
+    .error-msg { color: var(--danger); font-size: 0.76rem; margin-top: 0.3rem; display: none; }
+    .error-msg.show { display: block; }
+    .field-hint { font-size: 0.73rem; color: var(--muted2); margin-top: 0.25rem; }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .form-actions { display: flex; gap: 0.8rem; margin-top: 0.5rem; }
+    .btn-submit {
+      flex: 1; background: var(--accent); color: #fff; border: none;
+      padding: 0.85rem 1.5rem; border-radius: 10px; font-size: 0.93rem; font-weight: 500;
+      font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+    .btn-submit:hover { background: #4a3ee0; transform: translateY(-1px); box-shadow: 0 6px 24px var(--accent-glow); }
+    .btn-submit:disabled { background: var(--muted2); box-shadow: none; cursor: not-allowed; transform: none; }
+
+    .btn-cancel {
+      background: var(--surface2); color: var(--muted);
+      border: 1.5px solid var(--border); padding: 0.85rem 1.5rem;
+      border-radius: 10px; font-size: 0.93rem; font-weight: 500;
+      font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.15s;
+      text-decoration: none; display: flex; align-items: center; justify-content: center;
+    }
+    .btn-cancel:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+    .btn-spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff;
+      border-radius: 50%; animation: spin 0.6s linear infinite; display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay hidden" id="loading-overlay">
+  <div class="big-spinner"></div>
+</div>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">🛍️</div>
+    <h1>Shop<span>Vault</span></h1>
+  </div>
+  <a href="home.html" class="back-btn">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    Back
+  </a>
+</header>
+
+<main>
+  <div class="form-card">
+    <div class="form-header">
+      <div class="badge" id="mode-badge">New Product</div>
+      <h2 id="form-title">Add a New Product</h2>
+      <p id="form-sub">Fill in the details to add a new product to the catalogue.</p>
+    </div>
+
+    <form id="product-form" novalidate>
+      <input type="hidden" id="product-id"/>
+
+      <div class="field">
+        <label for="name">Product Name</label>
+        <input type="text" id="name" placeholder="e.g. Wireless Headphones" autocomplete="off"/>
+        <div class="error-msg" id="err-name">Product name is required.</div>
+      </div>
+
+      <div class="field">
+        <label for="description">Description</label>
+        <textarea id="description" placeholder="e.g. Premium noise-cancelling headphones with 30hr battery…"></textarea>
+        <div class="field-hint">Optional — a brief description of the product.</div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label for="price">Price (₹)</label>
+          <input type="number" id="price" placeholder="e.g. 1999" min="0" step="0.01"/>
+          <div class="error-msg" id="err-price">Enter a valid price (≥ 0).</div>
+        </div>
+        <div class="field">
+          <label for="quantity">Quantity</label>
+          <input type="number" id="quantity" placeholder="e.g. 50" min="0" step="1"/>
+          <div class="error-msg" id="err-quantity">Enter a valid quantity (≥ 0).</div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <a href="home.html" class="btn-cancel">Cancel</a>
+        <button type="submit" class="btn-submit" id="submit-btn">
+          <div class="btn-spinner" id="btn-spinner"></div>
+          <span id="submit-label">Add Product</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<script>
+  const API = 'http://localhost:8080/products';
+  const params = new URLSearchParams(location.search);
+  const editId = params.get('id');
+
+  if (editId) {
+    document.getElementById('mode-badge').textContent = 'Editing';
+    document.getElementById('form-title').textContent = 'Edit Product';
+    document.getElementById('form-sub').textContent = 'Update the product details below and save your changes.';
+    document.getElementById('submit-label').textContent = 'Save Changes';
+    document.getElementById('product-id').value = editId;
+
+    document.getElementById('loading-overlay').classList.remove('hidden');
+    fetch(`${API}/${editId}`)
+      .then(r => r.json())
+      .then(json => {
+        const p = json.data;
+        document.getElementById('name').value = p.name || '';
+        document.getElementById('description').value = p.description || '';
+        document.getElementById('price').value = p.price || '';
+        document.getElementById('quantity').value = p.quantity || '';
+      })
+      .catch(() => alert('Failed to load product data.'))
+      .finally(() => document.getElementById('loading-overlay').classList.add('hidden'));
+  }
+
+  function validateField(inputId, errId, check) {
+    const inp = document.getElementById(inputId);
+    const err = document.getElementById(errId);
+    if (!check(inp.value)) { inp.classList.add('error'); err.classList.add('show'); return false; }
+    inp.classList.remove('error'); err.classList.remove('show'); return true;
+  }
+
+  document.getElementById('product-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    let valid = true;
+    valid &= validateField('name',     'err-name',     v => v.trim().length > 0);
+    valid &= validateField('price',    'err-price',    v => v !== '' && !isNaN(v) && Number(v) >= 0);
+    valid &= validateField('quantity', 'err-quantity', v => v !== '' && !isNaN(v) && Number(v) >= 0 && Number.isInteger(Number(v)));
+    if (!valid) return;
+
+    const payload = {
+      name:        document.getElementById('name').value.trim(),
+      description: document.getElementById('description').value.trim(),
+      price:       parseFloat(document.getElementById('price').value),
+      quantity:    parseInt(document.getElementById('quantity').value),
+    };
+
+    const btn = document.getElementById('submit-btn');
+    document.getElementById('btn-spinner').style.display = 'block';
+    document.getElementById('submit-label').textContent = 'Saving…';
+    btn.disabled = true;
+
+    try {
+      const id = document.getElementById('product-id').value;
+      const res = await fetch(id ? `${API}/${id}` : API, {
+        method: id ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('Server error');
+      window.location.href = `home.html?success=${id ? 'updated' : 'added'}`;
+    } catch(err) {
+      alert('Something went wrong. Please try again.');
+      document.getElementById('btn-spinner').style.display = 'none';
+      document.getElementById('submit-label').textContent = editId ? 'Save Changes' : 'Add Product';
+      btn.disabled = false;
+    }
+  });
+
+  ['name','description','price','quantity'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => {
+      document.getElementById(id).classList.remove('error');
+      const e = document.getElementById(`err-${id}`);
+      if (e) e.classList.remove('show');
+    });
+  });
+</script>
+</body>
+</html>

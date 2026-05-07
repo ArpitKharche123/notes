@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ShopVault — Delete Product</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #f4f6fb;
+      --surface: #ffffff;
+      --surface2: #f8f9fc;
+      --border: #e4e8f0;
+      --accent: #5b4fff;
+      --accent-light: #ede9ff;
+      --accent-glow: rgba(91,79,255,0.12);
+      --danger: #e63559;
+      --danger-light: #fff0f3;
+      --danger-mid: #ffe0e6;
+      --danger-border: #ffc9d3;
+      --danger-glow: rgba(230,53,89,0.15);
+      --text: #0f0e1a;
+      --muted: #7b7998;
+      --muted2: #b0aec6;
+      --shadow: rgba(91,79,255,0.07);
+      --shadow-md: rgba(15,14,26,0.1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg); font-family: 'DM Sans', sans-serif; color: var(--text);
+      min-height: 100vh; display: flex; flex-direction: column;
+    }
+
+    header {
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      padding: 0 2.5rem; display: flex; align-items: center; justify-content: space-between;
+      height: 68px; box-shadow: 0 2px 16px var(--shadow);
+    }
+    .logo { display: flex; align-items: center; gap: 0.75rem; }
+    .logo-mark {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), #8b7dff);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; box-shadow: 0 4px 14px var(--accent-glow);
+    }
+    .logo h1 { font-family: 'Syne', sans-serif; font-size: 1.35rem; color: var(--text); }
+    .logo h1 span { color: var(--accent); }
+
+    main {
+      flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem;
+    }
+
+    .warn-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 22px; max-width: 460px; width: 100%;
+      overflow: hidden; box-shadow: 0 8px 48px var(--shadow-md);
+    }
+
+    .danger-stripe {
+      height: 5px;
+      background: linear-gradient(90deg, var(--danger), #ff8fa3, var(--danger), #ff8fa3);
+      background-size: 300% 100%;
+      animation: stripe-move 2.5s linear infinite;
+    }
+    @keyframes stripe-move { to { background-position: 300% 0; } }
+
+    .warn-body { padding: 2.5rem 2.4rem 2rem; }
+
+    .danger-icon-wrap {
+      width: 76px; height: 76px;
+      background: var(--danger-light); border: 2px solid var(--danger-border);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.6rem; animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 var(--danger-glow); }
+      50% { box-shadow: 0 0 0 14px rgba(230,53,89,0); }
+    }
+    .danger-icon { font-size: 2.2rem; }
+
+    .warn-title {
+      font-family: 'Syne', sans-serif; font-size: 1.65rem;
+      text-align: center; margin-bottom: 0.5rem; color: var(--text);
+    }
+    .warn-subtitle {
+      text-align: center; color: var(--muted); font-size: 0.875rem;
+      margin-bottom: 1.8rem; line-height: 1.6;
+    }
+
+    .product-preview {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.1rem 1.3rem; margin-bottom: 1.8rem;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .product-preview-icon {
+      width: 48px; height: 48px;
+      background: var(--danger-light); border: 1px solid var(--danger-border);
+      border-radius: 11px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; flex-shrink: 0;
+    }
+    .prod-name-preview { font-weight: 600; font-size: 1rem; color: var(--text); }
+    .prod-id-preview { font-size: 0.76rem; color: var(--muted); margin-top: 0.2rem; font-family: monospace; }
+
+    .warn-actions { display: flex; gap: 0.8rem; }
+    .btn-cancel {
+      flex: 1; background: var(--surface2); color: var(--muted);
+      border: 1.5px solid var(--border); padding: 0.84rem; border-radius: 10px;
+      font-size: 0.93rem; font-weight: 500; font-family: 'DM Sans', sans-serif;
+      cursor: pointer; transition: all 0.15s; text-decoration: none;
+      display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+    }
+    .btn-cancel:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+
+    .btn-confirm {
+      flex: 1; background: var(--danger); color: #fff; border: none;
+      padding: 0.84rem; border-radius: 10px; font-size: 0.93rem; font-weight: 500;
+      font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+      box-shadow: 0 4px 16px var(--danger-glow);
+    }
+    .btn-confirm:hover { background: #cc2a4e; box-shadow: 0 6px 24px var(--danger-glow); transform: translateY(-1px); }
+    .btn-confirm:disabled { background: var(--muted2); box-shadow: none; cursor: not-allowed; transform: none; }
+
+    .btn-spinner {
+      width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite; display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .warn-note {
+      text-align: center; font-size: 0.76rem; color: var(--muted2);
+      margin-top: 1.3rem; padding-top: 1.3rem; border-top: 1px solid var(--border);
+    }
+    .warn-note strong { color: var(--danger); }
+
+    .error-alert {
+      background: var(--danger-light); border: 1px solid var(--danger-border);
+      color: var(--danger); border-radius: 9px; padding: 0.75rem 1rem;
+      font-size: 0.84rem; margin-top: 1rem; display: none;
+    }
+    .error-alert.show { display: block; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">🛍️</div>
+    <h1>Shop<span>Vault</span></h1>
+  </div>
+</header>
+
+<main>
+  <div class="warn-card">
+    <div class="danger-stripe"></div>
+    <div class="warn-body">
+
+      <div class="danger-icon-wrap">
+        <span class="danger-icon">🗑️</span>
+      </div>
+
+      <h2 class="warn-title">Delete Product?</h2>
+      <p class="warn-subtitle">
+        This action is <strong>permanent</strong> and cannot be undone.<br/>
+        The following product will be permanently removed from your catalogue.
+      </p>
+
+      <div class="product-preview">
+        <div class="product-preview-icon">📦</div>
+        <div>
+          <div class="prod-name-preview" id="prod-name">Loading…</div>
+          <div class="prod-id-preview" id="prod-id-label">ID: —</div>
+        </div>
+      </div>
+
+      <div class="warn-actions">
+        <a href="home.html" class="btn-cancel">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          Keep It
+        </a>
+        <button class="btn-confirm" id="confirm-btn" onclick="confirmDelete()">
+          <div class="btn-spinner" id="btn-spinner"></div>
+          <span id="confirm-label">Yes, Delete</span>
+        </button>
+      </div>
+
+      <div class="error-alert" id="error-alert">
+        ⚠️ Failed to delete. Please try again or check the server.
+      </div>
+
+      <div class="warn-note">
+        <strong>Warning:</strong> Deleted products cannot be recovered.
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const API = 'http://localhost:8080/products';
+  const params = new URLSearchParams(location.search);
+  const id = params.get('id');
+  const name = params.get('name') || 'Unknown Product';
+
+  if (!id) window.location.href = 'home.html';
+
+  document.getElementById('prod-name').textContent = decodeURIComponent(name);
+  document.getElementById('prod-id-label').textContent = `Product ID: ${id}`;
+
+  async function confirmDelete() {
+    const btn = document.getElementById('confirm-btn');
+    document.getElementById('btn-spinner').style.display = 'block';
+    document.getElementById('confirm-label').textContent = 'Deleting…';
+    btn.disabled = true;
+    document.getElementById('error-alert').classList.remove('show');
+
+    try {
+      const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
+      if (res.status === 204 || res.ok) {
+        window.location.href = 'home.html?success=deleted';
+      } else {
+        throw new Error('Delete failed');
+      }
+    } catch(e) {
+      document.getElementById('error-alert').classList.add('show');
+      document.getElementById('btn-spinner').style.display = 'none';
+      document.getElementById('confirm-label').textContent = 'Yes, Delete';
+      btn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>
