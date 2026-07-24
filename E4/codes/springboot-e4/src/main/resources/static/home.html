@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Ledger — Customers</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== inline: shared design system ===== */
+:root {
+  --paper: #f6f1e4;
+  --paper-2: #efe8d6;
+  --card: #fffdf7;
+  --ink: #23291f;
+  --ink-soft: #4d5546;
+  --ink-faint: #8a8a72;
+  --rule: #d8cfb2;
+  --rule-strong: #c3b892;
+  --margin-red: #b5493a;
+  --brass: #a97c3d;
+  --brass-dark: #8a622c;
+  --brass-ink: #fffaf0;
+  --sage: #5f7a52;
+  --sage-dark: #48603c;
+  --rust: #ad4326;
+  --rust-dark: #8a3319;
+  --shadow: 0 1px 0 rgba(35,41,31,0.04), 0 8px 24px -12px rgba(35,41,31,0.25);
+  --radius: 3px;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: radial-gradient(1200px 600px at 10% -10%, #fbf7ea 0%, transparent 60%), var(--paper);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; }
+::selection { background: var(--brass); color: var(--brass-ink); }
+
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid var(--brass-dark);
+  outline-offset: 2px;
+}
+
+.cover-strip {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 10px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.cover-strip .tick { color: var(--brass); }
+.cover-strip .tick.offline { color: var(--rust); }
+
+.masthead {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 40px 28px 24px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  border-bottom: 3px double var(--rule-strong);
+}
+.masthead h1 {
+  font-family: "Fraunces", serif;
+  font-weight: 600;
+  font-size: 42px;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.masthead .volume {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+}
+.masthead p.sub {
+  margin: 6px 0 0;
+  color: var(--ink-soft);
+  font-size: 14px;
+  font-style: italic;
+  font-family: "Fraunces", serif;
+}
+
+.stamp-btn {
+  --stamp-color: var(--sage);
+  --stamp-dark: var(--sage-dark);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: 2px solid var(--stamp-color);
+  color: var(--stamp-dark);
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 12px 20px;
+  border-radius: 999px;
+  cursor: pointer;
+  transform: rotate(-1.5deg);
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.stamp-btn:hover { transform: rotate(0deg) scale(1.03); background: var(--stamp-color); color: var(--brass-ink); }
+
+.page { max-width: 980px; margin: 0 auto; padding: 32px 28px 80px; }
+
+.ledger {
+  position: relative;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding-left: 56px;
+  overflow: hidden;
+}
+.ledger::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: 40px;
+  width: 1px;
+  background: var(--margin-red);
+  opacity: 0.55;
+}
+.ledger-head {
+  display: grid;
+  grid-template-columns: 64px 1.6fr 64px 100px 130px 96px;
+  gap: 16px;
+  padding: 16px 24px 12px 20px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+}
+.ledger-row {
+  display: grid;
+  grid-template-columns: 64px 1.6fr 64px 100px 130px 96px;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 24px 16px 20px;
+  border-bottom: 1px dashed var(--rule);
+  transition: background 0.12s ease;
+}
+.ledger-row:last-child { border-bottom: none; }
+.ledger-row:hover { background: linear-gradient(90deg, rgba(169,124,61,0.06), transparent 70%); }
+
+.cell-id { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; color: var(--ink-faint); }
+.cell-name { font-family: "Fraunces", serif; font-weight: 600; font-size: 17px; color: var(--ink); }
+.cell-name .row-index { font-family: "IBM Plex Mono", monospace; font-weight: 400; font-size: 11px; color: var(--brass-dark); margin-right: 8px; }
+.cell-name .row-id { font-family: "IBM Plex Mono", monospace; font-weight: 400; font-size: 11px; color: var(--ink-faint); display: block; margin-top: 2px; }
+
+.cell-mono { font-family: "IBM Plex Mono", monospace; font-size: 13px; color: var(--ink-soft); }
+
+.row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.icon-btn {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper-2);
+  color: var(--ink-soft);
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer; text-decoration: none; transition: all 0.15s ease;
+}
+.icon-btn.edit:hover { background: var(--sage); border-color: var(--sage-dark); color: var(--brass-ink); }
+.icon-btn.delete:hover { background: var(--rust); border-color: var(--rust-dark); color: var(--brass-ink); }
+
+.empty-state { padding: 90px 24px; text-align: center; }
+.empty-state .seal {
+  width: 64px; height: 64px; margin: 0 auto 20px;
+  border: 2px solid var(--rule-strong); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; color: var(--ink-faint);
+}
+.empty-state.is-error .seal { border-color: var(--rust); color: var(--rust); }
+.empty-state h3 { font-family: "Fraunces", serif; font-size: 22px; margin: 0 0 6px; }
+.empty-state p { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+.empty-state code {
+  background: var(--paper-2);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 12.5px;
+}
+
+.tally {
+  margin-top: 18px;
+  display: flex; justify-content: space-between;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-faint); padding: 0 4px;
+}
+
+.card-wrap { display: flex; justify-content: center; padding-top: 12px; }
+.index-card {
+  width: 100%; max-width: 560px;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 40px 44px 36px;
+  position: relative;
+  border-top: 6px solid var(--brass);
+}
+.index-card .eyebrow {
+  font-family: "IBM Plex Mono", monospace; font-size: 11px;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--brass-dark); margin: 0 0 6px;
+}
+.index-card h2 { font-family: "Fraunces", serif; font-size: 28px; margin: 0 0 28px; }
+
+.field { margin-bottom: 20px; }
+.field label {
+  display: block; font-family: "IBM Plex Mono", monospace;
+  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-soft); margin-bottom: 7px;
+}
+.field .req { color: var(--rust); }
+.field .hint { display: block; font-family: "IBM Plex Sans", sans-serif; text-transform: none; letter-spacing: 0; font-size: 12px; color: var(--ink-faint); margin-top: 4px; font-style: italic; }
+
+.field input, .field select, .field textarea {
+  width: 100%; border: none; border-bottom: 1.5px solid var(--rule-strong);
+  background: transparent; padding: 8px 2px 10px;
+  font-family: "IBM Plex Sans", sans-serif; font-size: 15.5px; color: var(--ink);
+  transition: border-color 0.15s ease; appearance: none; border-radius: 0;
+}
+.field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%234d5546' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 2px center;
+  padding-right: 22px; cursor: pointer;
+}
+.field input::placeholder, .field textarea::placeholder { color: var(--ink-faint); font-style: italic; }
+.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-bottom-color: var(--brass); }
+.field .error-msg { display: none; font-size: 12px; color: var(--rust); margin-top: 6px; font-family: "IBM Plex Mono", monospace; }
+.field.invalid input, .field.invalid select, .field.invalid textarea { border-bottom-color: var(--rust); }
+.field.invalid .error-msg { display: block; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+.form-actions { display: flex; gap: 12px; margin-top: 32px; }
+.btn {
+  font-family: "IBM Plex Mono", monospace; font-size: 12.5px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 13px 22px; border-radius: 999px; cursor: pointer;
+  border: 2px solid transparent; text-decoration: none;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  transition: all 0.15s ease;
+}
+.btn-primary { background: var(--ink); color: var(--paper); flex: 1; }
+.btn-primary:hover { background: var(--brass-dark); }
+.btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn-ghost { background: transparent; border-color: var(--rule-strong); color: var(--ink-soft); }
+.btn-ghost:hover { border-color: var(--ink-soft); color: var(--ink); }
+.btn-danger { background: var(--rust); color: var(--brass-ink); }
+.btn-danger:hover { background: var(--rust-dark); }
+.btn-danger:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.back-link {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: "IBM Plex Mono", monospace; font-size: 12px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-soft); text-decoration: none; margin-bottom: 24px;
+}
+.back-link:hover { color: var(--brass-dark); }
+
+.banner {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  background: #fbeae4;
+  border: 1px solid var(--rust);
+  color: var(--rust-dark);
+  font-size: 13px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  margin-bottom: 22px;
+}
+.banner.show { display: flex; }
+
+.toast {
+  position: fixed; bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--ink); color: var(--paper);
+  font-family: "IBM Plex Mono", monospace; font-size: 12.5px; letter-spacing: 0.06em;
+  padding: 14px 22px; border-radius: 999px;
+  box-shadow: 0 10px 30px -8px rgba(0,0,0,0.4);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  display: flex; align-items: center; gap: 10px; z-index: 50;
+  max-width: 90vw; text-align: center;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.is-error { background: var(--rust-dark); }
+.toast .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--brass); flex-shrink: 0; }
+.toast.is-error .dot { background: #ffd8cc; }
+
+.void-card {
+  width: 100%; max-width: 520px;
+  background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 40px 44px 36px; position: relative; overflow: hidden;
+  border-top: 6px solid var(--rust);
+}
+.void-stamp {
+  position: absolute; top: 28px; right: -34px; transform: rotate(18deg);
+  border: 3px solid var(--rust); color: var(--rust);
+  font-family: "IBM Plex Mono", monospace; font-weight: 700; font-size: 13px;
+  letter-spacing: 0.2em; padding: 6px 40px; opacity: 0.85; border-radius: 4px;
+}
+.void-card .eyebrow {
+  font-family: "IBM Plex Mono", monospace; font-size: 11px;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--rust-dark); margin: 0 0 6px;
+}
+.void-card h2 { font-family: "Fraunces", serif; font-size: 26px; margin: 0 0 18px; max-width: 380px; }
+
+.record-preview {
+  background: var(--paper-2); border-radius: var(--radius);
+  padding: 18px 20px; margin: 20px 0 28px; border-left: 3px solid var(--margin-red);
+}
+.record-preview .rp-name { font-family: "Fraunces", serif; font-weight: 600; font-size: 18px; margin-bottom: 6px; }
+.record-preview .rp-line { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; color: var(--ink-soft); margin-top: 3px; }
+
+.void-note { font-size: 13.5px; color: var(--ink-soft); margin-bottom: 0; }
+
+.skel { animation: pulse 1.3s ease-in-out infinite; background: var(--paper-2); border-radius: 4px; }
+.skel-row { display: grid; grid-template-columns: 64px 1.6fr 64px 100px 130px 96px; gap: 16px; align-items: center; padding: 16px 24px 16px 20px; border-bottom: 1px dashed var(--rule); }
+.skel-line { height: 14px; }
+@keyframes pulse { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+
+@media (max-width: 720px) {
+  .masthead { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .ledger { padding-left: 0; }
+  .ledger::before { display: none; }
+  .ledger-head { display: none; }
+  .ledger-row, .skel-row { grid-template-columns: 1fr; gap: 6px; padding: 18px 20px; position: relative; }
+  .row-actions { position: absolute; top: 16px; right: 16px; }
+  .cell-id::before { content: "ID: "; color: var(--ink-faint); }
+  .cell-mono::before { content: attr(data-label) ": "; color: var(--ink-faint); }
+  .two-col { grid-template-columns: 1fr; }
+  .index-card, .void-card { padding: 30px 24px 28px; }
+}
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+</style>
+</head>
+<body>
+
+<div class="cover-strip">
+  <span>Ledger &middot; Customer Book</span>
+  <span><span class="tick" id="statusTick">&#9679;</span> <span id="statusText">Connecting&hellip;</span></span>
+</div>
+
+<header class="masthead">
+  <div>
+    <div style="display:flex; align-items:baseline; gap:14px;">
+      <h1>Customers</h1>
+      <span class="volume">Vol. I</span>
+    </div>
+    <p class="sub">Every account on file, kept in order.</p>
+  </div>
+  <a href="addCustomer.html" class="stamp-btn" aria-label="Add a new customer">
+    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M7.5 1V14M1 7.5H14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+    New Entry
+  </a>
+</header>
+
+<main class="page">
+  <section class="ledger" id="ledgerSection">
+    <div class="ledger-head" role="row" id="ledgerHead">
+      <span>ID</span>
+      <span>Name</span>
+      <span>Age</span>
+      <span>Gender</span>
+      <span>Phone</span>
+      <span></span>
+    </div>
+    <div class="ledger-rows" id="ledgerRows">
+      <!-- skeleton while loading -->
+      <div class="skel-row"><div class="skel skel-line"></div><div class="skel skel-line"></div><div class="skel skel-line"></div><div class="skel skel-line"></div><div></div></div>
+      <div class="skel-row"><div class="skel skel-line"></div><div class="skel skel-line"></div><div class="skel skel-line"></div><div class="skel skel-line"></div><div></div></div>
+    </div>
+  </section>
+
+  <div class="tally" id="tally"></div>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span class="dot"></span>
+  <span id="toastMsg"></span>
+</div>
+
+<script>
+/* ===== inline: API client =====
+   Matches edu.springboot_e4.controller.CustomerController.
+
+   Response shapes from the backend:
+     GET    /customers        -> 200 ApiResponseDto{ message, statusCode, data: CustomerResponseDto[] }
+     GET    /customers/{id}   -> 200 ApiResponseDto{ message, statusCode, data: CustomerResponseDto }
+     POST   /customers        -> 201 ApiResponseDto{ message, statusCode, data: CustomerResponseDto }
+     PUT    /customers/{id}   -> 200 ApiResponseDto{ message, statusCode, data: CustomerResponseDto }
+     PATCH  /customers/{id}   -> 200 CustomerResponseDto              (not wrapped)
+     DELETE /customers/{id}   -> 204 No Content                      (empty body)
+
+   CustomerResponseDto: { id, name, age, gender, phone }
+
+   NOTE: @CrossOrigin is commented out in the controller, so the backend
+   currently has no CORS headers enabled. If this page is served from a
+   different origin/port than the API, the browser will block the request
+   and this page will show the "Offline" / error state below. Uncomment
+   @CrossOrigin(origins = "*") (or a specific origin) on the controller
+   to allow this page to talk to it cross-origin.
+   =========================================================== */
+const API_BASE = "http://localhost:8080/customers";
+
+const CustomerApi = (() => {
+  async function request(path, options = {}) {
+    let res;
+    try {
+      res = await fetch(API_BASE + path, {
+        headers: { "Content-Type": "application/json" },
+        ...options
+      });
+    } catch (networkErr) {
+      throw new ApiError(
+        "Can't reach the server. Is the API running at " + API_BASE + "?",
+        0
+      );
+    }
+
+    if (!res.ok) {
+      let message = "Request failed (" + res.status + ").";
+      try {
+        const body = await res.json();
+        // ApiResponseDto carries its own "message"; Spring's default
+        // validation-error body (from @Valid) usually carries "errors".
+        if (body?.message) {
+          message = body.message;
+        } else if (body?.errors && typeof body.errors === "object") {
+          message = Object.values(body.errors).join(" ");
+        } else if (typeof body === "string") {
+          message = body;
+        }
+      } catch (_) {
+        /* no JSON body — keep the generic message */
+      }
+      throw new ApiError(message, res.status);
+    }
+
+    if (res.status === 204) return null;
+    const text = await res.text();
+    if (!text) return null;
+
+    const json = JSON.parse(text);
+    // Unwrap ApiResponseDto{ message, statusCode, data } when present.
+    // Endpoints that return the entity/list directly (e.g. PATCH) pass through untouched.
+    if (json && typeof json === "object" && "data" in json && "statusCode" in json) {
+      return json.data;
+    }
+    return json;
+  }
+
+  function getAll() {
+    return request("", { method: "GET" });
+  }
+
+  function getById(id) {
+    return request("/" + encodeURIComponent(id), { method: "GET" });
+  }
+
+  function create(dto) {
+    return request("", { method: "POST", body: JSON.stringify(dto) });
+  }
+
+  function update(id, dto) {
+    return request("/" + encodeURIComponent(id), {
+      method: "PUT",
+      body: JSON.stringify(dto)
+    });
+  }
+
+  function updateAge(id, dto) {
+    return request("/" + encodeURIComponent(id), {
+      method: "PATCH",
+      body: JSON.stringify(dto)
+    });
+  }
+
+  function remove(id) {
+    return request("/" + encodeURIComponent(id), { method: "DELETE" });
+  }
+
+  return { getAll, getById, create, update, updateAge, remove };
+})();
+
+class ApiError extends Error {
+  constructor(message, status) {
+    super(message);
+    this.status = status;
+  }
+}
+
+</script>
+<script>
+  const rowsEl = document.getElementById("ledgerRows");
+  const ledgerSection = document.getElementById("ledgerSection");
+  const ledgerHead = document.getElementById("ledgerHead");
+  const tallyEl = document.getElementById("tally");
+  const statusTick = document.getElementById("statusTick");
+  const statusText = document.getElementById("statusText");
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str ?? "";
+    return div.innerHTML;
+  }
+
+  function formatPhone(phone) {
+    // CustomerResponseDto#phone is a Java `long`, so 0/undefined means "not on file".
+    if (phone === undefined || phone === null || phone === 0) return "&mdash;";
+    return escapeHtml(String(phone));
+  }
+
+  function setOnline(ok) {
+    statusTick.classList.toggle("offline", !ok);
+    statusText.textContent = ok ? "Live" : "Offline";
+  }
+
+  function renderEmpty() {
+    ledgerHead.style.display = "none";
+    ledgerSection.style.paddingLeft = "0";
+    rowsEl.innerHTML = `
+      <div class="empty-state">
+        <div class="seal">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </div>
+        <h3>The book is empty</h3>
+        <p>Add your first customer to start the ledger.</p>
+        <a href="addCustomer.html" class="stamp-btn">New Entry</a>
+      </div>`;
+    tallyEl.textContent = "";
+  }
+
+  function renderError(err) {
+    ledgerHead.style.display = "none";
+    ledgerSection.style.paddingLeft = "0";
+    rowsEl.innerHTML = `
+      <div class="empty-state is-error">
+        <div class="seal">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        </div>
+        <h3>Couldn't load the ledger</h3>
+        <p>${escapeHtml(err.message)}<br>Check that the API is running at <code>${escapeHtml(API_BASE)}</code> and that <code>@CrossOrigin</code> is enabled on <code>CustomerController</code> for this page's origin.</p>
+        <button class="stamp-btn" id="retryBtn" style="border:2px solid var(--rust); color:var(--rust-dark);">Retry</button>
+      </div>`;
+    tallyEl.textContent = "";
+    document.getElementById("retryBtn").addEventListener("click", load);
+  }
+
+  function renderList(customers) {
+    ledgerHead.style.display = "";
+    ledgerSection.style.paddingLeft = "";
+
+    rowsEl.innerHTML = customers.map((c) => `
+      <div class="ledger-row" role="row">
+        <div class="cell-id" data-label="ID">${escapeHtml(String(c.id))}</div>
+        <div class="cell-name">${escapeHtml(c.name)}</div>
+        <div class="cell-mono" data-label="Age">${c.age ?? "&mdash;"}</div>
+        <div class="cell-mono" data-label="Gender">${c.gender ? escapeHtml(c.gender) : "&mdash;"}</div>
+        <div class="cell-mono" data-label="Phone">${formatPhone(c.phone)}</div>
+        <div class="row-actions">
+          <a class="icon-btn edit" href="addCustomer.html?id=${encodeURIComponent(c.id)}" aria-label="Edit ${escapeHtml(c.name)}" title="Edit">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 20h9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+          </a>
+          <a class="icon-btn delete" href="deleteCustomer.html?id=${encodeURIComponent(c.id)}" aria-label="Delete ${escapeHtml(c.name)}" title="Delete">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+        </div>
+      </div>
+    `).join("");
+
+    tallyEl.innerHTML = `<span>${customers.length} record${customers.length === 1 ? "" : "s"} on file</span><span>As returned by the API</span>`;
+  }
+
+  async function load() {
+    rowsEl.innerHTML = `
+      <div class="skel-row"><div class="skel skel-line"></div><div class="skel skel-line"></div><div class="skel skel-line"></div><div class="skel skel-line"></div><div></div></div>
+      <div class="skel-row"><div class="skel skel-line"></div><div class="skel skel-line"></div><div class="skel skel-line"></div><div class="skel skel-line"></div><div></div></div>`;
+    try {
+      // GET /customers -> ApiResponseDto{ data: CustomerResponseDto[] }, already unwrapped by CustomerApi.
+      const customers = await CustomerApi.getAll();
+      setOnline(true);
+      if (!customers || customers.length === 0) {
+        renderEmpty();
+      } else {
+        renderList(customers);
+      }
+    } catch (err) {
+      setOnline(false);
+      renderError(err);
+    }
+  }
+
+  function maybeShowToast() {
+    const params = new URLSearchParams(location.search);
+    const flag = params.get("flash");
+    if (!flag) return;
+    const messages = {
+      added: "Entry added to the ledger.",
+      updated: "Entry updated.",
+      deleted: "Entry removed from the ledger."
+    };
+    const msg = messages[flag];
+    if (!msg) return;
+    const toast = document.getElementById("toast");
+    document.getElementById("toastMsg").textContent = msg;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 2600);
+    history.replaceState(null, "", location.pathname);
+  }
+
+  load();
+  maybeShowToast();
+</script>
+</body>
+</html>
