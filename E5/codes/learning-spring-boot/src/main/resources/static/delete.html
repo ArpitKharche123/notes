@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Remove product — Stockline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F5F7; --surface:#FFFFFF; --ink:#1B1F27;
+  --ink-70:rgba(27,31,39,.7); --ink-45:rgba(27,31,39,.45); --ink-30:rgba(27,31,39,.3); --ink-15:rgba(27,31,39,.15); --ink-08:rgba(27,31,39,.08);
+  --primary:#2B4C7E; --primary-dark:#1F3A63; --primary-08:rgba(43,76,126,.08);
+  --brass:#B8862B; --brass-light:#E8C77A;
+  --success:#2F7D5D; --danger:#B5432F; --danger-dark:#96351F; --danger-08:rgba(181,67,47,.08);
+  --font-display:'Zilla Slab',Georgia,serif;
+  --font-body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:'IBM Plex Mono','SFMono-Regular',Consolas,monospace;
+  --radius-sm:4px; --radius-md:6px;
+}
+*,*::before,*::after{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.5;}
+a{color:inherit;} button,input{font-family:inherit;}
+*:focus-visible{outline:2px solid var(--primary);outline-offset:2px;}
+@media (prefers-reduced-motion: reduce){*{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;}}
+
+.topbar{background:var(--ink);color:#fff;height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;position:sticky;top:0;z-index:10;}
+.brand{font-family:var(--font-display);font-weight:600;font-size:1.2rem;color:#fff;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;}
+.nav-links{display:flex;gap:1.75rem;}
+.nav-links a{color:rgba(255,255,255,.72);text-decoration:none;font-size:.9rem;padding:.3rem 0;border-bottom:2px solid transparent;transition:color .15s ease,border-color .15s ease;}
+.nav-links a:hover{color:#fff;border-bottom-color:var(--brass-light);}
+
+.container{max-width:560px;margin:0 auto;padding:2.5rem 1.5rem 4rem;}
+.page-title{font-family:var(--font-display);font-size:1.9rem;font-weight:600;margin:0 0 .4rem;color:var(--danger-dark);}
+.page-subtitle{color:var(--ink-45);font-size:.9375rem;margin:0 0 1.75rem;}
+
+.btn{font-weight:500;font-size:.875rem;padding:.6rem 1.1rem;border-radius:var(--radius-sm);border:1.5px solid transparent;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem;transition:background-color .15s ease,border-color .15s ease,color .15s ease,transform .08s ease;text-decoration:none;}
+.btn-primary{background:var(--primary);color:#fff;}
+.btn-primary:hover{background:var(--primary-dark);}
+.btn-outline{background:transparent;border-color:var(--ink-15);color:var(--ink);}
+.btn-outline:hover{border-color:var(--ink-30);background:var(--ink-08);}
+.btn-danger-solid{background:var(--danger);color:#fff;}
+.btn-danger-solid:hover{background:var(--danger-dark);}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+.btn:active:not(:disabled){transform:translateY(1px);}
+
+.state-block{text-align:center;padding:3.5rem 1rem;color:var(--ink-45);}
+.state-block p{margin:0 0 1rem;}
+.spinner{width:34px;height:34px;border:3px solid var(--ink-08);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 1rem;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.confirm-card{display:flex;flex-direction:column;align-items:center;gap:1.25rem;background:var(--surface);border:1.5px solid var(--ink-08);border-radius:var(--radius-md);padding:2rem 1.5rem;}
+.tag-preview{position:relative;width:100%;max-width:300px;background:var(--surface);border:1.5px solid var(--ink-08);border-radius:var(--radius-md);padding:1.1rem 1.1rem 1rem 1.6rem;transition:opacity .4s ease,transform .4s ease,filter .4s ease;}
+.tag-preview.deleting{opacity:0;transform:scale(.92);filter:blur(2px);}
+.tag-preview::before{content:'';position:absolute;left:-7px;top:1.15rem;width:14px;height:14px;background:var(--bg);border:1.5px dashed var(--ink-15);border-radius:50%;}
+.card-id{position:absolute;top:.9rem;right:1rem;font-family:var(--font-mono);font-size:.7rem;color:var(--ink-30);}
+.cat-tag{display:inline-block;font-size:.7rem;font-weight:500;color:var(--primary);background:var(--primary-08);padding:.18rem .5rem;border-radius:3px;margin-bottom:.55rem;}
+.product-name{font-family:var(--font-display);font-size:1.15rem;font-weight:600;margin:0 0 .1rem;line-height:1.3;padding-right:2rem;}
+.price-row{margin-top:.9rem;padding-top:.8rem;border-top:1px dashed var(--ink-15);}
+.price{font-family:var(--font-mono);font-weight:600;font-size:1.3rem;color:var(--brass);}
+.price::before{content:'$';font-size:.75em;margin-right:1px;}
+
+.confirm-text{font-size:.9375rem;color:var(--ink-70);text-align:center;margin:0;}
+.form-banner{width:100%;background:var(--danger-08);border:1.5px solid rgba(181,67,47,.25);color:var(--danger-dark);padding:.7rem .9rem;border-radius:var(--radius-sm);font-size:.85rem;}
+.form-actions{display:flex;justify-content:center;gap:.65rem;}
+
+.overlay-backdrop{position:fixed;inset:0;background:rgba(27,31,39,.55);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:1000;}
+.overlay-backdrop.show{opacity:1;pointer-events:all;}
+.overlay-card{background:var(--surface);border-radius:10px;padding:2.25rem 2.5rem;text-align:center;transform:scale(.85);transition:transform .3s cubic-bezier(.34,1.56,.64,1);box-shadow:0 20px 50px rgba(27,31,39,.25);max-width:90vw;}
+.overlay-backdrop.show .overlay-card{transform:scale(1);}
+.checkmark{width:64px;height:64px;margin:0 auto 1rem;display:block;}
+.checkmark-circle{stroke:var(--success);stroke-width:2;stroke-dasharray:151;stroke-dashoffset:151;animation:circleDraw .5s ease forwards;}
+.checkmark-check{stroke:var(--success);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40;animation:checkDraw .3s .45s ease forwards;}
+@keyframes circleDraw{to{stroke-dashoffset:0;}}
+@keyframes checkDraw{to{stroke-dashoffset:0;}}
+.overlay-message{font-family:var(--font-display);font-size:1.15rem;font-weight:600;margin:0 0 1rem;}
+.redirect-bar{height:3px;background:var(--ink-08);border-radius:2px;overflow:hidden;width:180px;margin:0 auto;}
+.redirect-bar-fill{height:100%;background:var(--success);width:100%;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="home.html" class="brand"><span aria-hidden="true">🏷️</span> Stockline</a>
+  <nav class="nav-links">
+    <a href="home.html">Home</a>
+    <a href="add.html">Add product</a>
+  </nav>
+</div>
+
+<main class="container">
+  <h1 class="page-title">Remove product</h1>
+  <p class="page-subtitle">This removes the product from the catalog. This can't be undone.</p>
+
+  <div id="loadingState" class="state-block">
+    <div class="spinner"></div>
+    <p>Loading product…</p>
+  </div>
+
+  <div id="notFoundState" class="state-block" hidden>
+    <p id="notFoundText">We couldn't find that product. It may already be removed.</p>
+    <a href="home.html" class="btn btn-primary">Back to catalog</a>
+  </div>
+
+  <div id="confirmCard" class="confirm-card" hidden>
+    <article class="tag-preview" id="previewCard">
+      <span class="card-id" id="previewId"></span>
+      <span class="cat-tag" id="previewCategory"></span>
+      <h3 class="product-name" id="previewName"></h3>
+      <div class="price-row"><span class="price" id="previewPrice"></span></div>
+    </article>
+    <p class="confirm-text">Are you sure you want to delete this product?</p>
+    <div class="form-banner" id="deleteBanner" hidden></div>
+    <div class="form-actions">
+      <a href="home.html" class="btn btn-outline">Cancel</a>
+      <button class="btn btn-danger-solid" id="confirmDeleteBtn" type="button">Delete product</button>
+    </div>
+  </div>
+</main>
+
+<div class="overlay-backdrop" id="successOverlay">
+  <div class="overlay-card">
+    <svg class="checkmark" viewBox="0 0 52 52">
+      <circle class="checkmark-circle" cx="26" cy="26" r="24" fill="none"/>
+      <path class="checkmark-check" fill="none" d="M14 27l7 7 16-16"/>
+    </svg>
+    <p class="overlay-message" id="overlayMessage">Product deleted.</p>
+    <div class="redirect-bar"><div class="redirect-bar-fill" id="redirectBarFill"></div></div>
+  </div>
+</div>
+
+<script>
+const API_BASE = `${window.location.origin}/api/v1/products`;
+const params = new URLSearchParams(window.location.search);
+const productId = params.get('id');
+
+const loadingState = document.getElementById('loadingState');
+const notFoundState = document.getElementById('notFoundState');
+const notFoundText = document.getElementById('notFoundText');
+const confirmCard = document.getElementById('confirmCard');
+const deleteBanner = document.getElementById('deleteBanner');
+const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+const previewCard = document.getElementById('previewCard');
+
+function unwrapData(json){
+  if (json === null || json === undefined) return json;
+  if (Array.isArray(json)) return json;
+  if (typeof json === 'object'){
+    if ('data' in json) return json.data;
+    if ('result' in json) return json.result;
+    if ('payload' in json) return json.payload;
+  }
+  return json;
+}
+
+function extractErrorMessage(body, status){
+  if (!body) return `Request failed (HTTP ${status})`;
+  if (Array.isArray(body.errors) && body.errors.length){
+    return body.errors.map(e=>{
+      if (typeof e === 'string') return e;
+      if (e.field && e.defaultMessage) return `${e.field}: ${e.defaultMessage}`;
+      return e.defaultMessage || e.message || JSON.stringify(e);
+    }).join(' | ');
+  }
+  if (typeof body.message === 'string' && body.message) return body.message;
+  if (typeof body.detail === 'string' && body.detail) return body.detail;
+  if (typeof body.error === 'string' && body.error) return body.error;
+  return `Request failed (HTTP ${status})`;
+}
+
+async function apiFetch(url, options){
+  let res;
+  try { res = await fetch(url, options); }
+  catch(err){ throw new Error(`Couldn't reach the server. Make sure the API is running.`); }
+  let body = null;
+  const text = await res.text();
+  if (text){ try { body = JSON.parse(text); } catch(e){ body = null; } }
+  if (!res.ok) throw new Error(extractErrorMessage(body, res.status));
+  return body;
+}
+
+function showSuccessOverlay(message, redirectUrl, delay=1700){
+  document.getElementById('overlayMessage').textContent = message;
+  const fill = document.getElementById('redirectBarFill');
+  fill.style.animation = 'none';
+  void fill.offsetWidth;
+  fill.style.animation = `shrink ${delay}ms linear forwards`;
+  document.getElementById('successOverlay').classList.add('show');
+  try { sessionStorage.setItem('flashMessage', JSON.stringify({type:'success', text: message})); } catch(e){}
+  setTimeout(()=>{ window.location.href = redirectUrl; }, delay);
+}
+const styleTag = document.createElement('style');
+styleTag.textContent = '@keyframes shrink{from{width:100%;}to{width:0%;}}';
+document.head.appendChild(styleTag);
+
+async function init(){
+  if (!productId){
+    loadingState.hidden = true;
+    notFoundText.textContent = 'No product was selected for deletion.';
+    notFoundState.hidden = false;
+    return;
+  }
+  try {
+    const body = await apiFetch(`${API_BASE}/${productId}`);
+    const product = unwrapData(body);
+    if (!product || !product.id) throw new Error('not found');
+
+    document.getElementById('previewId').textContent = `#${product.id}`;
+    document.getElementById('previewCategory').textContent = product.category;
+    document.getElementById('previewName').textContent = product.name;
+    document.getElementById('previewPrice').textContent = Number(product.price).toFixed(2);
+
+    loadingState.hidden = true;
+    confirmCard.hidden = false;
+
+    confirmDeleteBtn.addEventListener('click', async ()=>{
+      confirmDeleteBtn.disabled = true;
+      confirmDeleteBtn.textContent = 'Deleting…';
+      deleteBanner.hidden = true;
+      try {
+        await apiFetch(`${API_BASE}/${productId}`, { method:'DELETE' });
+        previewCard.classList.add('deleting');
+        setTimeout(()=> showSuccessOverlay('Product deleted.', 'home.html'), 380);
+      } catch(err){
+        deleteBanner.hidden = false;
+        deleteBanner.textContent = err.message;
+        confirmDeleteBtn.disabled = false;
+        confirmDeleteBtn.textContent = 'Delete product';
+      }
+    });
+  } catch(err){
+    loadingState.hidden = true;
+    notFoundState.hidden = false;
+  }
+}
+
+init();
+</script>
+</body>
+</html>
